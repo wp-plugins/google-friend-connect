@@ -3,10 +3,10 @@
  Plugin Name: Google Friend Connect Plugin
  Description: This plugin allows a user to authenticate using his or her
  <a href="http://www.google.com/friendconnect/">Friend Connect</a> id to signin. More description can be found <a href="http://code.google.com/p/wp-gfc/">here</a>.
- Plugin URI: http://wp.msite.com.ar/googlefriendconnect/
+ Plugin URI: http://code.google.com/p/wp-gfc/
  Version: 1.0.0
  Author: Mauro Gonzalez
- Author URI: http://wp.msite.com.ar/
+ Author URI: http://code.google.com/p/wp-gfc/
 
  Copyright 2009 Google Inc.
  Licensed under the Apache License, Version 2.0 (the "License");
