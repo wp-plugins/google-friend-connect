@@ -2,11 +2,12 @@
 /*
  Plugin Name: Google Friend Connect Plugin
  Description: This plugin allows a user to authenticate using his or her
- <a href="http://www.google.com/friendconnect/">Friend Connect</a> id to signin. More description can be found <a href="http://code.google.com/p/wp-gfc/">here</a>.
- Plugin URI: http://code.google.com/p/wp-gfc/
+ <a href="http://www.google.com/friendconnect/">Friend Connect</a> 
+ id to signin. More description can be found <a href="http://code.google.com/p/wp-gfc/">here</a>.
+ Plugin URI: http://demo02.globant.com/wp_native_comments
  Version: 1.0.0
  Author: Mauro Gonzalez
- Author URI: http://code.google.com/p/wp-gfc/
+ Author URI: http://demo02.globant.com/wp_native_comments
 
  Copyright 2009 Google Inc.
  Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,7 +33,8 @@ define('SOCIALBAR_POS_TOP',1);
 define('SOCIALBAR_POS_BOTTOM',0);
 
 // Guess the location
-$gfcpluginpath = WP_CONTENT_URL.'/plugins/'.plugin_basename(dirname(__FILE__)).'/';
+$gfcpluginpath = WP_CONTENT_URL.'/plugins/' 
+  .plugin_basename(dirname(__FILE__)).'/';
 
 
 include_once(ABSPATH . 'wp-includes/registration.php');
@@ -60,8 +62,9 @@ add_action('wp_footer', 'init_fc_socialbar');
 add_action('save_post', 'gfc_save_post');
 
 /**
- * This filter takes care of pulling out the avatar image for us to be displayed
- * beside the comment. For our plugin, the avatar image is the one that
+ * This filter takes care of pulling out the avatar image 
+ * for us to be displayed beside the comment. 
+ * For our plugin, the avatar image is the one that
  * is obtained from the FC thumbnailUrl function call (see code below)
  */
 add_filter('get_avatar', 'fc_wp_get_avatar', 20, 5);
@@ -72,9 +75,11 @@ add_filter('comments_template', 'fc_comments_template');
 /**
  * this filter hides the xx comments link when GFC comments are enabled
  */
-add_filter('comments_popup_link_attributes', 'fc_comments_popup_link_attributes');
+add_filter('comments_popup_link_attributes', 
+  'fc_comments_popup_link_attributes');
 /**
- * this filter captures the comments post event and triggers an activity to FC activity stream
+ * this filter captures the comments post event and triggers 
+ * an activity to FC activity stream
  */
 add_filter('comment_post', 'fc_comment_post');
 
@@ -106,7 +111,8 @@ function gfc_save_post($id) {
   $batch = $osapi->newBatch();
 
   $activity = new osapiActivity(null, null);
-  $activity->setField('title', "New post ".$post->post_title." has been published");
+  $activity->setField('title', "New post " 
+    . $post->post_title." has been published");
   $activity->setField('body', substr($post->post_content,0,140).' ...');
 
   $create_params = array(
@@ -115,7 +121,8 @@ function gfc_save_post($id) {
         'activity' => $activity,
         'appId' => $site_id
   );
-  $batch->add($osapi->activities->create($create_params), 'createActivity');
+  $batch->add($osapi->activities->create(
+    $create_params), 'createActivity');
   $Activeties = $batch->execute();
 }
 
@@ -130,8 +137,6 @@ function fc_comment_post($id) {
 
   $options = get_option("FriendConnect");
   $comment = get_comment($id);
-
-
   $site_id = $options['gfcid'];
   $fcauth_token = $_COOKIE["fcauth" . $site_id];
   if(!$fcauth_token) {
@@ -210,7 +215,8 @@ function fc_wp_get_avatar($avatar, $comment, $size, $default, $alt) {
   if (!empty($comment->user_id)) {
     $email = $comment->comment_author_email;
 
-    $query = "SELECT * FROM `{$wpdb->prefix}users` WHERE user_email = '$email' LIMIT 1;";
+    $query = "SELECT * FROM `{$wpdb->prefix}users` " 
+    . "WHERE user_email = '$email' LIMIT 1;";
     $res = $wpdb->get_col($query);
     // We dont know if this user, so return whatever was given to me
     if (count($res) <= 0) {
@@ -222,7 +228,8 @@ function fc_wp_get_avatar($avatar, $comment, $size, $default, $alt) {
     }
     // Get the image and return the altered $avatar
     $image_url = get_usermeta( $res[0], "image_url");
-    return "<img alt='' src='{$image_url}' class='avatar avatar-{$size} photo avatar-default' height='{$size}' width='{$size}' />";
+    return "<img alt='' src='{$image_url}' class='avatar avatar-{$size}" 
+    . " photo avatar-default' height='{$size}' width='{$size}' />";
   } else {
     return $avatar;
   }
@@ -238,6 +245,9 @@ function init_gfc_widgets() {
   init_fc_members_widget();
   init_fc_recommendations_widget();
   init_fc_site_wide_comments_widget();
+  init_fc_polls_widget();
+  init_fc_newsletter_widget();
+  init_fc_featured_content_widget();
 }
 
 /**
@@ -295,7 +305,9 @@ function gfc_wp_head() {
     $wg_data = get_option("FriendConnect Sign in");
     ?>
     <script	type="text/javascript" src="http://www.google.com/jsapi"></script>
-    <script type="text/javascript">google.load('friendconnect', '0.8');</script>
+    <script type="text/javascript">
+      google.load('friendconnect', '0.8');
+    </script>
     <script	type="text/javascript" src="<?php echo $gfcpluginpath; ?>/googlefriendconnect.js"></script>
     <script type="text/javascript">
         var SITE_ID = "<?php echo $options['gfcid']; ?>";
@@ -387,6 +399,22 @@ function init_fc_site_wide_comments_widget() {
   register_sidebar_widget("GFC Site Wide Comments", "fc_site_wide_comments_widget");
   register_widget_control("GFC Site Wide Comments", "fc_site_wide_comments_widget_control");
 }
+
+
+function init_fc_polls_widget() {
+  register_sidebar_widget("GFC Polls", "fc_polls_widget");
+  register_widget_control("GFC Polls", "fc_polls_widget_control");
+}
+
+function init_fc_newsletter_widget() {
+  register_sidebar_widget("GFC Newsletter", "fc_newsletter_widget");
+  register_widget_control("GFC Newsletter", "fc_newsletter_widget_control");
+}
+
+function init_fc_featured_content_widget() {
+  register_sidebar_widget("GFC Featured content", "fc_featured_content_widget");
+  register_widget_control("GFC Featured content", "fc_featured_content_widget_control");
+}
 /**
  * fc_members_widget
  * renders the members widget
@@ -400,7 +428,7 @@ function fc_members_widget($args) {
   $options = get_option("FriendConnect");
   $wg_options = get_option("GFC Members");
   echo $before_widget;
-  echo $before_title.$after_title;
+  echo $before_title . $wg_options['FriendConnectMembers_title']. $after_title;
   ?>
   <div id="div-6708123552665042589" 
   	style="width: <?php echo $wg_options['FriendConnectMembers_width'] 
@@ -429,6 +457,10 @@ function fc_members_widget($args) {
 function fc_members_widget_control() {
   $data = get_option("GFC Members");
   ?>
+  <p><label for="FriendConnectMembers_title">Title: <input type="text"
+  name="FriendConnectMembers_title" id="FriendConnectMembers_title"
+  value="<?php echo (isset($data['FriendConnectMembers_width']) ? $data['FriendConnectMembers_title'] : '' )?>" />
+</label><small>Blank means no title</small></p>
 <p><label for="FriendConnectMembers_width">Width: <input type="text"
 	name="FriendConnectMembers_width" id="FriendConnectMembers_width"
 	value="<?php echo (isset($data['FriendConnectMembers_width']) ? $data['FriendConnectMembers_width'] : 0 )?>" />px
@@ -441,6 +473,7 @@ function fc_members_widget_control() {
   if(isset($_POST['FriendConnectMembers_rows'])) {
     $data['FriendConnectMembers_rows'] = attribute_escape((isset($_POST['FriendConnectMembers_rows']) && $_POST['FriendConnectMembers_rows'] > 0 ) ? $_POST['FriendConnectMembers_rows']:1);
     $data['FriendConnectMembers_width'] = attribute_escape($_POST['FriendConnectMembers_width']);
+    $data['FriendConnectMembers_title'] = attribute_escape($_POST['FriendConnectMembers_title']);
     update_option('GFC Members', $data);
   }
 }
@@ -454,7 +487,7 @@ function fc_recommendations_widget($args) {
   $options = get_option("FriendConnect");
   $wg_options = get_option("GFC Recommendations");
   echo $before_widget;
-  echo $before_title.$after_title;
+  echo $before_title.$wg_options['FriendConnectRecommendations_title'].$after_title;
   ?>
   <div id="div-2154215263602388786" class="widget" 
   	style="width: <?php echo $wg_options['FriendConnectRecommendations_width'] ? 
@@ -483,7 +516,11 @@ function fc_recommendations_widget($args) {
 function fc_recommendations_widget_control() {
   $data = get_option("GFC Recommendations");
   ?>
-  <p><label for="FriendConnectRecommendations_header">Title: <input
+  <p><label for="FriendConnectRecommendations_title">Title: <input
+    type="text" name="FriendConnectRecommendations_title" id="FriendConnectRecommendations_title"
+    value="<?php echo (isset($data['FriendConnectRecommendations_title']) ? $data['FriendConnectRecommendations_title'] : '' )?>"
+     /> </label></p>
+  <p><label for="FriendConnectRecommendations_header">Header: <input
   	type="text" name="FriendConnectRecommendations_header" id="FriendConnectRecommendations_header"
   	value="<?php echo (isset($data['FriendConnectRecommendations_header']) ? $data['FriendConnectRecommendations_header'] : 'Recommended Posts' )?>"
   	 /> </label></p>
@@ -507,6 +544,7 @@ function fc_recommendations_widget_control() {
     $data['FriendConnectRecommendations_width'] = attribute_escape($_POST['FriendConnectRecommendations_width']);
     $data['FriendConnectRecommendations_header'] = attribute_escape($_POST['FriendConnectRecommendations_header']);
     $data['FriendConnectRecommendations_btntxt'] = attribute_escape($_POST['FriendConnectRecommendations_btntxt']);
+    $data['FriendConnectRecommendations_title'] = attribute_escape($_POST['FriendConnectRecommendations_title']);
     update_option('GFC Recommendations', $data);
   }
 }
@@ -524,11 +562,11 @@ function fc_site_wide_comments_widget($args) {
   $options = get_option("FriendConnect");
   $wg_options = get_option("GFC Site Wide Comments");
   echo $before_widget;
-  echo $before_title.$after_title;
+  echo $before_title.$wg_options['FCSiteWideComments_title'].$after_title;
   ?>
   <div id="div-3351075849475840924" 
-  	style="width: <?php echo $wg_options['FriendConnectMembers_width'] 
-  	  ? $wg_options['FriendConnectMembers_width'].'px;' : '100%;'?>" class="widget">
+  	style="width: <?php echo $wg_options['FCSiteWideComments_width'] 
+  	  ? $wg_options['FCSiteWideComments_width'].'px;' : '100%;'?>" class="widget">
   </div>
   <script type="text/javascript">
   	  var swc_skin = <?php echo render_skin();?>;	
@@ -553,7 +591,11 @@ function fc_site_wide_comments_widget($args) {
 function fc_site_wide_comments_widget_control() {
  $data = get_option("GFC Site Wide Comments");
   ?>
-  <p><label for="FCSiteWideComments_header">Title: <input
+  <p><label for="FCSiteWideComments_title">Title: <input
+    type="text" name="FCSiteWideComments_title" id="FCSiteWideComments_title"
+    value="<?php echo (isset($data['FCSiteWideComments_title']) ? $data['FCSiteWideComments_title'] : '' )?>"
+     /> </label></p>
+  <p><label for="FCSiteWideComments_header">Header: <input
   	type="text" name="FCSiteWideComments_header" id="FCSiteWideComments_header"
   	value="<?php echo (isset($data['FCSiteWideComments_header']) ? $data['FCSiteWideComments_header'] : 'Comments' )?>"
   	 /> </label></p>
@@ -582,6 +624,7 @@ function fc_site_wide_comments_widget_control() {
   if(isset($_POST['FCSiteWideComments_header'])) {
     $data['FCSiteWideComments_rows'] = attribute_escape((isset($_POST['FCSiteWideComments_rows']) 
       && $_POST['FCSiteWideComments_rows'] > 0 ) ? $_POST['FCSiteWideComments_rows']:5);
+    $data['FCSiteWideComments_title'] = attribute_escape($_POST['FCSiteWideComments_title']);
     $data['FCSiteWideComments_width'] = attribute_escape($_POST['FCSiteWideComments_width']);
     $data['FCSiteWideComments_header'] = attribute_escape($_POST['FCSiteWideComments_header']);
     $data['FCSiteWideComments_dflt'] = attribute_escape($_POST['FCSiteWideComments_dflt']);
@@ -589,9 +632,152 @@ function fc_site_wide_comments_widget_control() {
     $data['FCSiteWideComments_allowanon'] = $_POST['FCSiteWideComments_allowanon'] ? true : false;
     update_option('GFC Site Wide Comments', $data);
   } 
-  
+}
+/**
+ * 
+ * @param $args
+ * @return void
+ */
+function fc_polls_widget($args) {
+  extract($args);
+  global $gfcpluginpath;
+  $options = get_option("FriendConnect");
+  $wg_options = get_option("GFC Polls");
+  echo $before_widget;
+  echo $before_title.$wg_options['FCPolls_title'].$after_title;
+  ?>
+  <div id="friendconnect_polls"></div>
+    <!-- Render the gadget into a div. -->
+    <script type="text/javascript">
+    var GFC_polls_skin = <?php echo render_skin();?>;
+    var FC_PLUGIN_URL = "<?php echo $gfcpluginpath; ?>";
+     google.friendconnect.container.renderOpenSocialGadget(
+     { id: 'friendconnect_polls',
+       url:'http://www.google.com/friendconnect/gadgets/poll.xml',
+       site: '<?php echo $options['gfcid']?>' },
+      GFC_polls_skin);
+    </script>  
+  <?php 
+  echo $after_widget;
 }
 
+/**
+ * 
+ * @return unknown_type
+ */
+function fc_polls_widget_control() {
+  $data = get_option("GFC Polls");
+  ?>
+  <p><label for="FCPolls_title">Title: <input
+    type="text" name="FCPolls_title" id="FCPolls_title"
+    value="<?php echo (isset($data['FCPolls_title']) ? $data['FCPolls_title'] : '' )?>"
+     /> </label></p>
+  <?php
+  if(isset($_POST['FCPolls_title'])) {
+    $data['FCPolls_title'] = attribute_escape($_POST['FCPolls_title']); 
+    update_option('GFC Polls', $data);
+  }
+}
+/**
+ * @param $args
+ * @return unknown_type
+ */
+function fc_newsletter_widget($args) {
+  extract($args);
+  global $gfcpluginpath;
+  $options = get_option("FriendConnect");
+  $wg_options = get_option("GFC Newsletter");
+  echo $before_widget;
+  echo $before_title.$wg_options['Newsletter_title'].$after_title;
+  ?>
+  <div id="friendconnect_newsletter"></div>
+    <!-- Render the gadget into a div. -->
+    <script type="text/javascript">
+    var GFC_newsletter_skin = <?php echo render_skin();?>;
+    google.friendconnect.container.renderOpenSocialGadget(
+     { id: 'friendconnect_newsletter',
+       url:'http://www.google.com/friendconnect/gadgets/newsletterSubscribe.xml',
+       site: '<?php echo $options['gfcid']?>',
+       'view-params':{},
+       'prefs':{
+         "newsletterHeadlineText":"<?php echo $wg_options['Newsletter_headline_txt']?>",
+         "newsletterStandardText":"<?php echo $wg_options['Newsletter_std_txt']?>"}
+   },
+    GFC_newsletter_skin);
+      </script>
+  <?php 
+  echo $after_widget;
+}
+
+function fc_newsletter_widget_control() {
+ $data = get_option("GFC Newsletter");
+  ?>
+  <p><label for=""Newsletter_title"">Title: <input
+    type="text" name="Newsletter_title" id="Newsletter_title"
+    value="<?php echo (isset($data['Newsletter_title']) ? $data['Newsletter_title'] : '' )?>"
+     /> </label></p>
+  <p><label for="Newsletter_headline_txt">Header: <input
+    type="text" name="Newsletter_headline_txt" id="Newsletter_headline_txt"
+    value="<?php echo (isset($data['Newsletter_headline_txt']) ? $data['Newsletter_headline_txt'] : 'Newsletter Sign up' )?>"
+     /> </label></p>
+  <p><label for="Newsletter_std_txt">Standard text: <input
+    type="text" name="Newsletter_std_txt" id="Newsletter_std_txt"
+    value="<?php echo (isset($data['Newsletter_std_txt']) ? $data['Newsletter_std_txt'] : 'Sign up for our newsletter' )?>"
+     /> </label></p>
+  <?php
+  if(isset($_POST['Newsletter_headline_txt'])) {
+    $data['Newsletter_headline_txt'] = attribute_escape($_POST['Newsletter_headline_txt']); 
+    $data['Newsletter_std_txt'] = attribute_escape($_POST['Newsletter_std_txt']);
+    $data['Newsletter_title'] = attribute_escape($_POST['Newsletter_title']);
+    update_option('GFC Newsletter', $data);
+  } 
+}
+
+function fc_featured_content_widget($args) {
+  extract($args);
+  global $gfcpluginpath;
+  $options = get_option("FriendConnect");
+  $wg_options = get_option("GFC Featured content");
+  echo $before_widget;
+  echo $before_title.$wg_options['Featured_content_title'].$after_title;
+  ?>
+  <div id="friendconnect_featured_content"></div>
+    <!-- Render the gadget into a div. -->
+    <script type="text/javascript">
+    var GFC_featured_skin = <?php echo render_skin();?>;
+    google.friendconnect.container.renderOpenSocialGadget(
+     { id: 'friendconnect_featured_content',
+       url:'http://www.google.com/friendconnect/gadgets/content_reveal.xml',
+       site: '<?php echo $options['gfcid']?>',
+       'prefs':{
+         "showHeaderTitle":"1",
+         "customSiteRestriction":"",
+         "customHeaderTitle":"<?php echo $wg_options['Featured_content_headline_txt']?>"}
+   },
+   GFC_featured_skin);
+      </script>
+  <?php 
+  echo $after_widget;
+}
+
+function fc_featured_content_widget_control() {
+  $data = get_option("GFC Featured content");
+  ?>
+  <p><label for="Featured_content_title">Title: <input
+    type="text" name="Featured_content_title" id="Featured_content_title"
+    value="<?php echo (isset($data['Featured_content_title']) ? $data['Featured_content_title'] : '' )?>"
+     /> </label></p>
+  <p><label for="Featured_content_headline_txt">Header: <input
+    type="text" name="Featured_content_headline_txt" id="Featured_content_headline_txt"
+    value="<?php echo (isset($data['Featured_content_headline_txt']) ? $data['Featured_content_headline_txt'] : 'Featured Content' )?>"
+     /> </label></p>
+  <?php
+  if(isset($_POST['Featured_content_headline_txt'])) {
+    $data['Featured_content_headline_txt'] = attribute_escape($_POST['Featured_content_headline_txt']); 
+    $data['Featured_content_title'] = attribute_escape($_POST['Featured_content_title']);
+    update_option('GFC Featured content', $data);
+  } 
+}
 /**
  * initializes the fc social bar.
  * @return unknown_type
@@ -618,7 +804,6 @@ function init_fc_socialbar() {
     <?php
   }
 }
-
 /*
  * Admin User Interface
  */

@@ -1,6 +1,5 @@
 <?php
 /*
-Copyright 2009 Joost de Valk
 Copyright 2009 Google Inc.
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -32,6 +31,7 @@ if (isset($_POST['username'])) {
   $profileurl = $_POST['profileurl'];
   $image_url = $_POST['image_url'];
   $gfcid = $_POST['uid'];
+  $pass = md5($gfcid.'_google_friend_connect');
   
   // The usermeta field for each user is of the form:
   // userid    meta_key    meta_value
@@ -42,7 +42,7 @@ if (isset($_POST['username'])) {
   $meta_key = $gfcid."_fc_meta_key";
   
   // Check if a user with this profileId and meta_key exists
-  $metas = $wpdb->get_col( $wpdb->prepare("SELECT user_id FROM $wpdb->usermeta WHERE meta_key = '$meta_key' AND meta_value='$profile_id_url';") );   
+  $metas = $wpdb->get_col( $wpdb->prepare("SELECT user_id FROM $wpdb->usermeta WHERE meta_key = '$meta_key' LIMIT 1") );   
   
   if (count($metas) > 0) {
     // We found me
@@ -52,7 +52,7 @@ if (isset($_POST['username'])) {
     // First check if a user with the same name is present
     $basev = $wpdb->get_col( $wpdb->prepare("SELECT user_id FROM $wpdb->usermeta WHERE meta_key = '$meta_key';") );
     $basev2 = $wpdb->get_col( $wpdb->prepare("SELECT user_login FROM $wpdb->users WHERE user_login = '$gfcid';") );
-    $userid = wp_create_user($gfcid, $_POST['passwd'], $gfcid."@friendconnect.google.com"); 
+    $userid = wp_create_user($gfcid, $pass, $gfcid."@friendconnect.google.com"); 
     update_usermeta($userid, $meta_key, $profile_id_url);
   }
   // Log me in
@@ -60,7 +60,7 @@ if (isset($_POST['username'])) {
   update_usermeta($userid, "image_url", $image_url);
   update_usermeta($userid, "display_name", $uname);
   $cred['user_login'] = $gfcid;
-  $cred['user_password'] = $_POST['passwd'];
+  $cred['user_password'] = $pass;
   wp_signon($cred);
 }
 die('200');
