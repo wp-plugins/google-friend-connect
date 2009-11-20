@@ -5,7 +5,7 @@
  <a href="http://www.google.com/friendconnect/">Friend Connect</a> 
  id to signin. More description can be found <a href="http://code.google.com/p/wp-gfc/">here</a>.
  Plugin URI: http://demo02.globant.com/wp_native_comments
- Version: 1.0.0
+ Version: 1.1.2
  Author: Mauro Gonzalez
  Author URI: http://demo02.globant.com/wp_native_comments
 
@@ -248,6 +248,7 @@ function init_gfc_widgets() {
   init_fc_polls_widget();
   init_fc_newsletter_widget();
   init_fc_featured_content_widget();
+  init_fc_adsense_widget();
 }
 
 /**
@@ -292,32 +293,31 @@ function render_skin() {
     }
     return json_encode($ret);
 }
-
+/**
+ * gfc_wp_head
+ * callback function for the wp_head hook
+ * @return unknown_type
+ */
 function gfc_wp_head() {
 
   global $gfcpluginpath;
   $options = get_option("FriendConnect");
   $user = wp_get_current_user();
-  $logged_in = gfc_check_logged_in();
-  global $gfcpluginpath;
-
-    wp_print_scripts( array( 'sack' ));
-    $wg_data = get_option("FriendConnect Sign in");
-    ?>
-    <script	type="text/javascript" src="http://www.google.com/jsapi"></script>
-    <script type="text/javascript">
-      google.load('friendconnect', '0.8');
+  wp_print_scripts( array( 'sack' ));
+  ?>
+  <script	type="text/javascript" src="http://www.google.com/jsapi"></script>
+  <script type="text/javascript">
+    google.load('friendconnect', '0.8');
+  </script>
+  <script	type="text/javascript" src="<?php echo $gfcpluginpath; ?>/googlefriendconnect.js"></script>
+  <script type="text/javascript">
+      var SITE_ID = "<?php echo $options['gfcid']; ?>";
+      var FC_PLUGIN_URL = "<?php echo $gfcpluginpath; ?>";
+      var FC_LOGOUT_URL = "<?php echo wp_logout_url(get_permalink()); ?>";
+      var FC_USER_ID = <?php echo $user->id?>;
+      google.friendconnect.container.setParentUrl(FC_PLUGIN_URL);
     </script>
-    <script	type="text/javascript" src="<?php echo $gfcpluginpath; ?>/googlefriendconnect.js"></script>
-    <script type="text/javascript">
-        var SITE_ID = "<?php echo $options['gfcid']; ?>";
-        var FC_PLUGIN_URL = "<?php echo $gfcpluginpath; ?>";
-        var FC_LOGOUT_URL = "<?php echo wp_logout_url(get_permalink()); ?>";
-        var FC_USER_ID = <?php echo $user->id?>;
-        google.friendconnect.container.setParentUrl(FC_PLUGIN_URL);
-      </script>
-    <?php
-
+  <?php
 }
 
 /**
@@ -360,10 +360,6 @@ function gfc_wp_comment_form($post_id) {
 </script>
   <?php
 }
-
-
-
-
 /**
  * init_fc_members_widget
  * registers the members widget as a sidebar widget
@@ -400,20 +396,49 @@ function init_fc_site_wide_comments_widget() {
   register_widget_control("GFC Site Wide Comments", "fc_site_wide_comments_widget_control");
 }
 
-
+/**
+ * init_fc_polls_widget
+ * registers the interests polls  widget as a sidebar widget
+ * @return void
+ *
+ * @author Mauro Gonzalez <gmaurol@gmail.com>
+ */
 function init_fc_polls_widget() {
   register_sidebar_widget("GFC Polls", "fc_polls_widget");
   register_widget_control("GFC Polls", "fc_polls_widget_control");
 }
-
+/**
+ * init_fc_newsletter_widget
+ * registers the newsletter  widget as a sidebar widget
+ * @return void
+ *
+ * @author Mauro Gonzalez <gmaurol@gmail.com>
+ */
 function init_fc_newsletter_widget() {
   register_sidebar_widget("GFC Newsletter", "fc_newsletter_widget");
   register_widget_control("GFC Newsletter", "fc_newsletter_widget_control");
 }
-
+/**
+ * init_fc_featured_content_widget
+ * registers the featured content  widget as a sidebar widget
+ * @return void
+ *
+ * @author Mauro Gonzalez <gmaurol@gmail.com>
+ */
 function init_fc_featured_content_widget() {
   register_sidebar_widget("GFC Featured content", "fc_featured_content_widget");
   register_widget_control("GFC Featured content", "fc_featured_content_widget_control");
+}
+/**
+ * init_fc_adsense_widget
+ * registers the adsense  widget as a sidebar widget
+ * @return void
+ *
+ * @author Mauro Gonzalez <gmaurol@gmail.com>
+ */
+function init_fc_adsense_widget() {
+  register_sidebar_widget("GFC Adsense", "fc_adsense_widget");
+  register_widget_control("GFC Adsense", "fc_adsense_widget_control");
 }
 /**
  * fc_members_widget
@@ -587,7 +612,14 @@ function fc_site_wide_comments_widget($args) {
   <?php
   echo $after_widget;
 }
-
+/**
+ * fc_site_wide_comments_widget_control
+ * renders the controls for the site wide comments widget
+ * in the admin panel.
+ * 
+ * @return void
+ * @author Mauro Gonzalez <gmaurol@gmail.com>
+ */
 function fc_site_wide_comments_widget_control() {
  $data = get_option("GFC Site Wide Comments");
   ?>
@@ -634,9 +666,11 @@ function fc_site_wide_comments_widget_control() {
   } 
 }
 /**
- * 
- * @param $args
+ * fc_polls_widget
+ * renders fc polls widget
  * @return void
+ *
+ * @author Mauro Gonzalez <gmaurol@gmail.com>
  */
 function fc_polls_widget($args) {
   extract($args);
@@ -662,8 +696,12 @@ function fc_polls_widget($args) {
 }
 
 /**
+ * fc_polls_widget_control
+ * renders the controls for the interests polls widget
+ * in the admin panel.
  * 
- * @return unknown_type
+ * @return void
+ * @author Mauro Gonzalez <gmaurol@gmail.com>
  */
 function fc_polls_widget_control() {
   $data = get_option("GFC Polls");
@@ -679,8 +717,11 @@ function fc_polls_widget_control() {
   }
 }
 /**
- * @param $args
- * @return unknown_type
+ * fc_newsletter_widget
+ * renders fc newsletter widget
+ * @return void
+ *
+ * @author Mauro Gonzalez <gmaurol@gmail.com>
  */
 function fc_newsletter_widget($args) {
   extract($args);
@@ -708,7 +749,14 @@ function fc_newsletter_widget($args) {
   <?php 
   echo $after_widget;
 }
-
+/**
+ * fc_newsletter_widget_control
+ * renders the controls for the newsletter widget
+ * in the admin panel.
+ * 
+ * @return void
+ * @author Mauro Gonzalez <gmaurol@gmail.com>
+ */
 function fc_newsletter_widget_control() {
  $data = get_option("GFC Newsletter");
   ?>
@@ -732,7 +780,13 @@ function fc_newsletter_widget_control() {
     update_option('GFC Newsletter', $data);
   } 
 }
-
+/**
+ * fc_featured_content_widget
+ * renders fc featured content widget
+ * @return void
+ *
+ * @author Mauro Gonzalez <gmaurol@gmail.com>
+ */
 function fc_featured_content_widget($args) {
   extract($args);
   global $gfcpluginpath;
@@ -759,7 +813,14 @@ function fc_featured_content_widget($args) {
   <?php 
   echo $after_widget;
 }
-
+/**
+ * fc_featured_content_widget_control
+ * renders the controls for the featured content widget
+ * in the admin panel.
+ * 
+ * @return void
+ * @author Mauro Gonzalez <gmaurol@gmail.com>
+ */
 function fc_featured_content_widget_control() {
   $data = get_option("GFC Featured content");
   ?>
@@ -776,6 +837,89 @@ function fc_featured_content_widget_control() {
     $data['Featured_content_headline_txt'] = attribute_escape($_POST['Featured_content_headline_txt']); 
     $data['Featured_content_title'] = attribute_escape($_POST['Featured_content_title']);
     update_option('GFC Featured content', $data);
+  } 
+}
+/**
+ * fc_adsense_widget
+ * renders fc featured content widget
+ * @return void
+ *
+ * @author Mauro Gonzalez <gmaurol@gmail.com>
+ */
+function fc_adsense_widget($args) {
+  extract($args);
+  global $gfcpluginpath;
+  $options = get_option("FriendConnect");
+  $wg_options = get_option("GFC Adsense");
+  $size = $wg_options['Adsense_widget_ad_size'];
+  $height = substr($size, strpos($size, 'x')+1,strlen($size));
+  echo $before_widget;
+  echo $before_title.$wg_options['Adsense_widget_title'].$after_title;
+  ?>
+  <div id="friendconnect_adsense_content"></div>
+    <!-- Render the gadget into a div. -->
+    <script type="text/javascript">
+    var GFC_adsense_skin = <?php echo render_skin();?>;
+    google.friendconnect.container.renderAdsGadget(
+     { id: 'friendconnect_adsense_content',
+       height:'<?php echo $height?>',
+       site: '<?php echo $options['gfcid']?>',
+       'prefs':{
+         "google_ad_client":"<?php echo $wg_options['Adsense_widget_ad_client']?>",
+         "google_ad_host":"<?php echo $wg_options['Adsense_widget_ad_host']?>",
+         "google_ad_format":"<?php echo $wg_options['Adsense_widget_ad_size']?>"}
+   },
+   GFC_adsense_skin);
+      </script>
+  <?php 
+  echo $after_widget;
+}
+/**
+ * fc_adsense_widget_control
+ * renders the controls for the adsense widget
+ * in the admin panel.
+ * 
+ * @return void
+ * @author Mauro Gonzalez <gmaurol@gmail.com>
+ */
+function fc_adsense_widget_control() {
+  $data = get_option("GFC Adsense");
+  $opts = array('728x90','468x60','300x250','160x600','120x600',
+   '336x280','250x250','234x60','180x150','200x200','125x125',
+   '120x240');
+  ?>
+  <p><label for="Adsense_widget_title">Title: <input
+    type="text" name="Adsense_widget_title" id="Adsense_widget_title"
+    value="<?php echo (isset($data['Adsense_widget_title']) ? $data['Adsense_widget_title'] : '' )?>"
+     /> </label></p>
+  <p><label for="Adsense_widget_ad_client">Google Ad Client: <input
+    type="text" name="Adsense_widget_ad_client" id="Adsense_widget_ad_client"
+    value="<?php echo (isset($data['Adsense_widget_ad_client']) ? $data['Adsense_widget_ad_client'] : '' )?>"
+     /> </label></p>
+  <p><label for="Adsense_widget_ad_host">Google Ad Host: <input
+    type="text" name="Adsense_widget_ad_host" id="Adsense_widget_ad_host"
+    value="<?php echo (isset($data['Adsense_widget_ad_host']) ? $data['Adsense_widget_ad_host'] : '' )?>"
+     /> </label></p>
+  <p><label for="Adsense_widget_ad_size">Ad Size: 
+    <select name="Adsense_widget_ad_size">
+      <?php 
+        foreach($opts as $opt) {
+          echo '<option value="'.$opt.'"';
+          if($data['Adsense_widget_ad_size'] == $opt) {
+            echo ' selected="selected" ';
+          }
+          echo '>'.$opt.'</option>'; 
+        }
+      ?>
+    </select>
+  </label></p>
+  <?php
+  if(isset($_POST['Adsense_widget_ad_size'])) {
+    $data['Adsense_widget_title'] = attribute_escape($_POST['Adsense_widget_title']); 
+    $data['Adsense_widget_ad_host'] = attribute_escape($_POST['Adsense_widget_ad_host']);
+    $data['Adsense_widget_ad_client'] = attribute_escape($_POST['Adsense_widget_ad_client']);
+    $data['Adsense_widget_ad_size'] = attribute_escape($_POST['Adsense_widget_ad_size']);  
+    update_option('GFC Adsense', $data);
   } 
 }
 /**
