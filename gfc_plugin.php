@@ -5,7 +5,7 @@
  <a href="http://www.google.com/friendconnect/">Friend Connect</a> 
  id to signin. More description can be found <a href="http://code.google.com/p/wp-gfc/">here</a>.
  Plugin URI: http://demo02.globant.com/wp_native_comments
- Version: 1.1.3
+ Version: 1.1.4
  Author: Mauro Gonzalez
  Author URI: http://demo02.globant.com/wp_native_comments
 
@@ -275,6 +275,7 @@ function init_gfc_widgets() {
   init_fc_newsletter_widget();
   init_fc_featured_content_widget();
   init_fc_adsense_widget();
+  init_fc_activities_widget();
 }
 
 /**
@@ -465,6 +466,17 @@ function init_fc_featured_content_widget() {
 function init_fc_adsense_widget() {
   register_sidebar_widget("GFC Adsense", "fc_adsense_widget");
   register_widget_control("GFC Adsense", "fc_adsense_widget_control");
+}
+/**
+ * init_fc_adsense_widget
+ * registers the adsense  widget as a sidebar widget
+ * @return void
+ *
+ * @author Mauro Gonzalez <gmaurol@gmail.com>
+ */
+function init_fc_activities_widget(){
+  register_sidebar_widget("GFC Activities", "fc_activities_widget");
+  register_widget_control("GFC Activities", "fc_activities_widget_control");
 }
 /**
  * fc_members_widget
@@ -946,6 +958,73 @@ function fc_adsense_widget_control() {
     $data['Adsense_widget_ad_client'] = attribute_escape($_POST['Adsense_widget_ad_client']);
     $data['Adsense_widget_ad_size'] = attribute_escape($_POST['Adsense_widget_ad_size']);  
     update_option('GFC Adsense', $data);
+  } 
+}
+
+/**
+ * fc_activities_widget
+ * renders fc activities widget
+ * @return void
+ *
+ * @author Mauro Gonzalez <gmaurol@gmail.com>
+ */
+function fc_activities_widget($args) {
+ extract($args);
+  global $gfcpluginpath;
+  $options = get_option("FriendConnect");
+  $wg_options = get_option("GFC Activities");
+  echo $before_widget;
+  echo $before_title.$wg_options['Activities_title'].$after_title;
+  ?>
+  <div id="friendconnect_activities"></div>
+    <!-- Render the gadget into a div. -->
+    <script type="text/javascript">
+    var GFC_act_skin = <?php echo render_skin();?>;
+    google.friendconnect.container.renderOpenSocialGadget(
+     { id: 'friendconnect_activities',
+       url:'http://www.google.com/friendconnect/gadgets/activities.xml',
+       site: '<?php echo $options['gfcid']?>',
+       'view-params':{'scpe':'<?php echo $wg_options['Activities_scope']?>'}},
+    GFC_act_skin);
+      </script>
+  <?php 
+  echo $after_widget; 
+}
+
+/**
+ * fc_activities_widget_control
+ * renders the controls for the activities widget
+ * in the admin panel.
+ * 
+ * @return void
+ * @author Mauro Gonzalez <gmaurol@gmail.com>
+ */
+function fc_activities_widget_control() {
+  $data = get_option("GFC Activities");
+  ?>
+  <p><label for=Activities_scopeActivities_scope>Title: <input
+    type="text" name="Activities_title" id="Activities_title"
+    value="<?php echo (isset($data['Activities_title']) ? $data['Activities_title'] : '' )?>"
+     /> </label></p>
+  <p><label for="Activities_scope">Ad Size: 
+    <select id="Activities_scope" name="Activities_scope">
+      <?php 
+        foreach(array('SITE'=>'This site', 'FRIENDS'=>
+          'Friends on all friendconnect sites') as $val => $opt) {
+          echo '<option value="'.$val.'"';
+          if($data['Activities_scope'] == $val) {
+            echo ' selected="selected" ';
+          }
+          echo '>'.$opt.'</option>'; 
+        }
+      ?>
+    </select>
+  </label></p>
+  <?php
+  if(isset($_POST['Activities_scope'])) {
+    $data['Activities_scope'] = attribute_escape($_POST['Activities_scope']); 
+    $data['Activities_title'] = attribute_escape($_POST['Activities_title']);
+    update_option('GFC Activities', $data);
   } 
 }
 /**
