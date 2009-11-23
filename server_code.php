@@ -27,11 +27,10 @@ if (isset($_POST['username'])) {
   
   // Extract POST into local variables to avoid confusion
   $uname = $_POST['username'];
-  $profile_id_url = $_POST['profile_id_url'];
+  //$profile_id_url = $_POST['profile_id_url'];
   $profileurl = $_POST['profileurl'];
   $image_url = $_POST['image_url'];
   $gfcid = $_POST['uid'];
-  $pass = md5($gfcid.'_google_friend_connect');
   
   // The usermeta field for each user is of the form:
   // userid    meta_key    meta_value
@@ -50,17 +49,18 @@ if (isset($_POST['username'])) {
   } else {
     // Since this user is not available, we'll create him.
     // First check if a user with the same name is present
+	$pass = md5($gfcid.microtime()); //generate a random password
     $basev = $wpdb->get_col( $wpdb->prepare("SELECT user_id FROM $wpdb->usermeta WHERE meta_key = '$meta_key';") );
     $basev2 = $wpdb->get_col( $wpdb->prepare("SELECT user_login FROM $wpdb->users WHERE user_login = '$gfcid';") );
     $userid = wp_create_user($gfcid, $pass, $gfcid."@friendconnect.google.com"); 
-    update_usermeta($userid, $meta_key, $profile_id_url);
+    update_usermeta($userid, $meta_key, $pass);
   }
   // Log me in
   update_usermeta($userid, "user_url", $profileurl);
   update_usermeta($userid, "image_url", $image_url);
   update_usermeta($userid, "display_name", $uname);
   $cred['user_login'] = $gfcid;
-  $cred['user_password'] = $pass;
+  $cred['user_password'] = get_usermeta( $userid, $meta_key);
   wp_signon($cred);
 }
 die('200');

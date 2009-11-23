@@ -5,7 +5,7 @@
  <a href="http://www.google.com/friendconnect/">Friend Connect</a> 
  id to signin. More description can be found <a href="http://code.google.com/p/wp-gfc/">here</a>.
  Plugin URI: http://demo02.globant.com/wp_native_comments
- Version: 1.1.2
+ Version: 1.1.3
  Author: Mauro Gonzalez
  Author URI: http://demo02.globant.com/wp_native_comments
 
@@ -62,6 +62,10 @@ add_action('wp_footer', 'init_fc_socialbar');
 add_action('save_post', 'gfc_save_post');
 
 /**
+ * catch plugin activation and fix user meta fo backwards compat
+ */
+register_activation_hook( __FILE__, 'initialize_friendconnect');
+/**
  * This filter takes care of pulling out the avatar image 
  * for us to be displayed beside the comment. 
  * For our plugin, the avatar image is the one that
@@ -82,6 +86,28 @@ add_filter('comments_popup_link_attributes',
  * an activity to FC activity stream
  */
 add_filter('comment_post', 'fc_comment_post');
+
+/**
+ * fixes old passwords 
+ * @return void
+ */
+function initialize_friendconnect() {
+  global $wpdb;
+
+  $query = "SELECT ID, user_login FROM `{$wpdb->prefix}users` " 
+  . "WHERE user_email like '%@friendconnect.google.com';";
+  $res = $wpdb->get_results($query, $output = ARRAY_A);
+  if(count($res)>0){
+    foreach($res as $row){
+       if(is_numeric($row['user_login'])) {
+         $meta_key = $row['user_login']."_fc_meta_key";
+         $pass = md5($row['user_login'].microtime());
+         update_usermeta($row['ID'], $meta_key, $pass);
+         wp_update_user(array('ID'=>$row['ID'], 'user_pass'=>$pass));
+       }
+    }
+  }  
+}
 
 /**
  * populates an the post publishing action to fc activity stream
